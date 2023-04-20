@@ -1,0 +1,33 @@
+name: docker-build
+description: runs docker build as task
+source: github.com/bhanurp/docker-build-test
+labels:
+  - docker
+  - build
+input:
+  - name: resourceName
+    description: resource used as input
+  - name: dockerImage
+    description: provide docker image with tag in this format dockerImage:dockerImageTag
+output:
+  - name: docker_build_status
+    description: docker image build status
+execution:
+  - set -e
+  - jf --version
+  # set default values
+  - dockerFileLocation="."
+  - dockerFileName="Dockerfile"
+  - dockerImage=${IN_DockerImage}
+  - dockerImageName=$(echo $dockerImage | cut -d ':' -f 1)
+  - dockerImageTag=$(echo $dockerImage | cut -d ':' -f 2)
+  - resourceName=${IN_ResourceName}
+  - buildDir="res_${IN_ResourceName}_resourcePath"
+  - echo ${!buildDir}
+
+  - pushd ${!buildDir}
+
+  - docker build -t $dockerImage -f ${!buildDir}/$dockerFileName .
+  - docker image ls
+  # Sending output of the task to use it in the pipeline scope
+  - echo "docker_build_status=success"
